@@ -1,0 +1,12 @@
+1/ Sensor of Temparatur
+2/ Camera
+
+Actionneurs:
+1/LED
+2/RELAY 
+
+si temparture > 39  close relay sinon open relay
+
+si pas de mask -> close relay sinon open relay 
+
+relay = responsable pour declancher le moteur pour ouvrir la porte 
