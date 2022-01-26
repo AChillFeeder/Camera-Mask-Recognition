@@ -10,3 +10,9 @@ si temparture > 39  close relay sinon open relay
 si pas de mask -> close relay sinon open relay 
 
 relay = responsable pour declancher le moteur pour ouvrir la porte 
+
+
+
+clone Face Mask Detection repo : https://github.com/chandrikadeb7/Face-Mask-Detection
+train model
+
