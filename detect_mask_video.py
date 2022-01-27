@@ -1,17 +1,59 @@
-# USAGE
-# python detect_mask_video.py
 
-# import the necessary packages
+# camera and recognition imports
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
 from imutils.video import VideoStream
 import numpy as np
-import argparse
 import imutils
 import time
 import cv2
 import os
+
+
+# counterfit imports
+from counterfit_connection import CounterFitConnection
+from counterfit_shims_grove.grove_led import GroveLed
+from counterfit_shims_grove.grove_relay import GroveRelay
+
+CounterFitConnection.init('127.0.0.1', 5000)
+
+
+class Person:
+	def __init__(self) -> None:
+		self.mask:bool
+		self.temperature:float
+
+		self.criticalTemperature = 38
+		self.maskDetectionAccuracy = 0.5
+
+		self.useTemperature = False
+		
+global person
+person = Person()
+
+maskLed = GroveLed(1)
+temperatureLed = GroveLed(2)
+authorizedLed = GroveLed(3)
+relay = GroveRelay(4)
+
+
+
+# load our serialized face detector model from disk
+print("[INFO] loading face detector model...")
+prototxtPath = os.path.sep.join(["face_detector", "deploy.prototxt"])
+weightsPath = os.path.sep.join(["face_detector",
+	"res10_300x300_ssd_iter_140000.caffemodel"])
+faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
+
+# load the face mask detector model from disk
+print("[INFO] loading face mask detector model...")
+maskNet = load_model("mask_detector.model")
+
+# initialize the video stream and allow the camera sensor to warm up
+print("[INFO] starting video stream...")
+vs = VideoStream(src=0).start()
+time.sleep(2.0)
 
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
@@ -20,7 +62,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
 		(104.0, 177.0, 123.0))
 
-	# pass the blob through the network and obtain the face detections
+	#.temperature =   the blob through the network and obtain the face detections
 	faceNet.setInput(blob)
 	detections = faceNet.forward()
 
@@ -38,7 +80,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 
 		# filter out weak detections by ensuring the confidence is
 		# greater than the minimum confidence
-		if confidence > 0.5:
+		if confidence > person.maskDetectionAccuracy:
 			# compute the (x, y)-coordinates of the bounding box for
 			# the object
 			box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
@@ -75,22 +117,6 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	# locations
 	return (locs, preds)
 
-# load our serialized face detector model from disk
-print("[INFO] loading face detector model...")
-prototxtPath = os.path.sep.join(["face_detector", "deploy.prototxt"])
-weightsPath = os.path.sep.join(["face_detector",
-	"res10_300x300_ssd_iter_140000.caffemodel"])
-faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
-
-# load the face mask detector model from disk
-print("[INFO] loading face mask detector model...")
-maskNet = load_model("mask_detector.model")
-
-# initialize the video stream and allow the camera sensor to warm up
-print("[INFO] starting video stream...")
-vs = VideoStream(src=0).start()
-time.sleep(2.0)
-
 def frame():
 
 	# grab the frame from the threaded video stream and resize it
@@ -113,8 +139,11 @@ def frame():
 		# the bounding box and text
 		if mask > withoutMask:
 			label = "Mask"
+			person.mask = True
 		else:
 			label = "No Mask"
+			person.mask = False
+			
 		# label = "Mask" if mask > withoutMask else "No Mask"
 		color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
 			
@@ -132,18 +161,49 @@ def frame():
 	
 
 # Main Loop
-try:
-	while 1:
-		frame()
-		# if the `q` key was pressed, break from the loop
-		key = cv2.waitKey(1) & 0xFF
-		if key == ord("q"):
-			break
+while True:
 
-except Exception as exc:
-	print(exc)
-	
-finally:
-	# do a bit of cleanup
-	cv2.destroyAllWindows()
-	vs.stop()
+	frame()
+	person.temperature = CounterFitConnection.get_sensor_float_value(0)
+
+	# CONDITIONS
+
+	maskLed.off() if person.mask else maskLed.on() 
+	temperatureLed.on() if person.temperature >= person.criticalTemperature else temperatureLed.off()
+
+	if person.mask and ( not person.useTemperature | person.temperature < person.criticalTemperature):
+		# the subject is allowed to enter
+		relay.on() # activate relay
+		authorizedLed.on() # turn on green light
+
+
+	# RESET
+	if CounterFitConnection.get_sensor_boolean_value(10): # if button is pressed => reset lights and relay
+		maskLed.off()
+		temperatureLed.off()
+		authorizedLed.off()
+		relay.off()
+		
+
+	# if the `q` key was pressed, break from the loop
+	key = cv2.waitKey(1) & 0xFF
+	if key == ord("q"):
+		break
+
+
+
+
+
+
+"""
+Pins map:
+
+0 - Temperature Sensor
+1 - maskLed
+2 - temperatureLed
+3 - authorizedLed
+4 - relay
+10 - Reset button 
+"""
+
+# add settings (accuracy, temperature, use temperature or not)
