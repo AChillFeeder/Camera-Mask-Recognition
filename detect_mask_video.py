@@ -171,7 +171,7 @@ while True:
 	maskLed.off() if person.mask else maskLed.on() 
 	temperatureLed.on() if person.temperature >= person.criticalTemperature else temperatureLed.off()
 
-	if person.mask and ( not person.useTemperature | person.temperature < person.criticalTemperature):
+	if person.mask and ( not person.useTemperature or (person.temperature < person.criticalTemperature)):
 		# the subject is allowed to enter
 		relay.on() # activate relay
 		authorizedLed.on() # turn on green light
