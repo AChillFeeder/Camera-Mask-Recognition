@@ -27,7 +27,7 @@ class Person:
 		self.criticalTemperature = 38
 		self.maskDetectionAccuracy = 0.5
 
-		self.useTemperature = False
+		self.useTemperature = True
 		
 global person
 person = Person()
