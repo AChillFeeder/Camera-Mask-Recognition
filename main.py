@@ -9,6 +9,7 @@ import imutils
 import time
 import cv2
 import os
+import json
 
 
 # counterfit imports
@@ -24,10 +25,15 @@ class Person:
 		self.mask:bool
 		self.temperature:float
 
-		self.criticalTemperature = 38
-		self.maskDetectionAccuracy = 0.5
+		with open("settings.json", "r") as file:
+			settings = json.load(file)
 
-		self.useTemperature = True
+		self.criticalTemperature = settings["criticalTemperature"]
+		self.maskDetectionAccuracy = settings["maskDetectionAccuracy"]
+
+		self.useTemperature = settings["useTemperature"]
+		
+
 		
 global person
 person = Person()
