@@ -47,3 +47,8 @@ Counterfit
 ```sh
 python main.py
 ```
+
+## Credits:
+Big thanks to:
+- jimbobbennett (https://github.com/jimbobbennett) for Counterfit (https://github.com/CounterFit-IoT/CounterFit)
+- chandrikadeb7 (https://github.com/chandrikadeb7) for Face Mask Detection (https://github.com/chandrikadeb7/Face-Mask-Detection)
