@@ -13,3 +13,37 @@ If the person comforms to the configured safety standards then a relay is activa
 - **Clear and concise output**: 3 LED's of different colors convey clear messages.
 - **Flexible**: Mask detection accuracy, the critical body temperature and whether to use temperature readings or not could all be set up.
 - **Under Development**: This project is still under developement, so there are more features to come!
+
+## Installing and Running the app:
+
+- Clone *Camera-Mask-Module* repository:
+
+```sh
+git clone https://github.com/AChillFeeder/Camera-Mask-Recognition.git
+```
+
+- Move into Camera-Mask-Module directory and install requirements
+```sh
+cd Camera-Mask-Module
+pip install -f requirements.txt
+```
+---
+- To run the program, first start Counterfit
+```sh
+Counterfit
+```
+- This will open a new browser window with the CounterFit interface.
+- Create the following components on their respective pins.
+    - *LED* on pins **1, 2 and 3**
+    - *RELAY* on pin **4**
+    - *TEMPERATURE* SENSOR on pin **0**
+    - *BUTTON* on pin **10**
+    
+    ![Counterfit Setup Screenshot](https://github.com/AChillFeeder/Camera-Mask-Recognition/blob/main/Assets/counterfit_setup_screenshot.png)
+
+
+
+- On a separate CMD window, run the program
+```sh
+python main.py
+```

@@ -193,8 +193,6 @@ while True:
 
 
 
-
-
 """
 Pins map:
 
