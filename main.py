@@ -17,7 +17,12 @@ from counterfit_connection import CounterFitConnection
 from counterfit_shims_grove.grove_led import GroveLed
 from counterfit_shims_grove.grove_relay import GroveRelay
 
+# counterfit API
+from CounterFitApi import CounterFitApi
+
 CounterFitConnection.init('127.0.0.1', 5000)
+api_connection = CounterFitApi('127.0.0.1', 5000)
+api_connection.createCircuit()
 
 
 class Person:
@@ -168,6 +173,8 @@ def frame():
 
 # Main Loop
 while True:
+
+	
 
 	frame()
 	person.temperature = CounterFitConnection.get_sensor_float_value(0)

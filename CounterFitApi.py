@@ -1,12 +1,13 @@
 
 import requests
+import json
 
 class CounterFitApi:
     def __init__(self, host, port) -> None:
 
         self.host = host
         self.port = port
-        self.address = f"{self.host}:{self.port}"
+        self.address = f"http://{self.host}:{self.port}"
         self.headers = {'Content-type': 'application/json', 'Accept': 'text/plain'} # In case I need it
 
         self.available_sensors = {
@@ -19,11 +20,11 @@ class CounterFitApi:
         }
 
     def createSensor(self, type, pin, unit=None):
-        type = type.capitalize()
+        
         if type in self.available_sensors:
             unit = unit or self.available_sensors[type]["default_unit"] # use default unit if none is provided
         else:
-            print("TYPE provided isn't supported, please use one in the following list\n" + self.available_sensors)
+            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
             return 0
 
         requests.post(
@@ -34,29 +35,34 @@ class CounterFitApi:
             }
         )
 
-    def createActuator(self, type, port):
-        type = type.capitalize()
+    def createActuator(self, type, pin):
+        
         if not type in self.available_actuators:
-            print("TYPE provided isn't supported, please use one in the following list\n" + self.available_actuators)
+            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
             return 0
 
         requests.post(
             f"{self.address}/create_actuator", json={
                 "type": type,
-                "port": port
+                "port": pin
             }
         )
 
-    def editSensor(self, type, port, value, is_random=False, random_min=0, random_max=1):
+    def editSensor(self, type, pin, value, **randomization_settings):
 
-        type = type.capitalize()
+        # Optional / Inexistant parameters in some elements but necessary in others
+        is_random = False if not "is_random" in randomization_settings else randomization_settings["is_random"]
+        random_min = 0 if not "random_min" in randomization_settings else randomization_settings["random_min"]
+        random_max = 1 if not "random_max" in randomization_settings else randomization_settings["random_max"]
+
+        
         if not type in self.available_sensors:
-            print("TYPE provided isn't supported, please use one in the following list\n" + self.available_sensors)
+            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
             return 0
 
         requests.post(
             f"{self.address}/{self.available_sensors[type]['value_type']}_sensor_settings", json={
-                "port": port,
+                "port": pin,
                 "value": value,
                 "is_random": is_random,
                 "random_min": random_min,
@@ -64,18 +70,69 @@ class CounterFitApi:
             }
         )
         
-    def editActuator(self, port, color, type="LED"):
+    def editActuator(self, pin, type="LED", **LED_specific_settings):
 
-        type = type.capitalize()
+        color = LED_specific_settings["color"] if "color" in LED_specific_settings else ""
+
         if not type in self.available_actuators:
-            print("TYPE provided isn't supported, please use one in the following list\n" + self.available_actuators)
+            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
             return 0
 
         requests.post(
             f"{self.address}/{type}_actuator_settings", json={
-                "port": port,
+                "port": pin,
                 "color": color,
             }
         )
 
+    def createCircuit(self, circuit="default_circuit.json"):
+        with open(circuit, "r") as file:
+            circuit = json.load(file)
 
+        for sensor_type, sensor in circuit["sensors"].items():
+            if sensor_type in self.available_sensors:
+                # CREATION
+                self.createSensor(sensor_type, sensor["pin"])
+
+                # ADDING SETTINGS
+                # provide the values for random_min and random_max if they exist
+                if "random_min" in sensor and "random_max" in sensor:
+                    self.editSensor(
+                        sensor_type, 
+                        sensor["pin"], 
+                        sensor["value"], 
+                        is_random=sensor["is_random"],
+                        random_min= sensor["random_min"],
+                        random_max= sensor["random_max"]
+                        )
+    
+                # pass the function without those arguments otherwise (case of a Button for example)
+                else:
+                    self.editSensor(
+                        sensor_type, 
+                        sensor["pin"], 
+                        sensor["value"], 
+                        is_random=sensor["is_random"],
+                        )
+
+            else:
+                print(f"{sensor_type} doesn't exist, choose a sensor from the following list \n{self.available_sensors}")
+
+        for actuator_type, actuator in circuit["actuators"].items():
+            if actuator_type in self.available_actuators:
+                # CREATION
+                self.createActuator(actuator_type, actuator["pin"])
+
+                # EDITING SETTINGS
+                if "color" in actuator:
+                    self.editActuator(actuator["pin"], color=actuator["color"])
+                else:
+                    self.editActuator(actuator["pin"])
+
+
+# make is so capitalization isn't needed
+# add unit support
+# raise errors instead of return 0
+
+
+# SWAP PIN AND TYPE IN JSON FILE AND FIX THE SHIT ACCORDINGLY
