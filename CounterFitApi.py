@@ -70,16 +70,14 @@ class CounterFitApi:
             }
         )
         
-    def editActuator(self, pin, type="LED", **LED_specific_settings):
-
-        color = LED_specific_settings["color"] if "color" in LED_specific_settings else ""
+    def editActuator(self, pin, type="LED", color=""):
 
         if not type in self.available_actuators:
             print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
             return 0
 
         requests.post(
-            f"{self.address}/{type}_actuator_settings", json={
+            f"{self.address}/led_actuator_settings", json={
                 "port": pin,
                 "color": color,
             }
