@@ -22,7 +22,7 @@ from CounterFitApi import CounterFitApi
 
 CounterFitConnection.init('127.0.0.1', 5000)
 api_connection = CounterFitApi('127.0.0.1', 5000)
-api_connection.createCircuit()
+
 
 
 class Person:
@@ -31,17 +31,18 @@ class Person:
 		self.temperature:float
 
 		with open("settings.json", "r") as file:
-			settings = json.load(file)
-
-		self.criticalTemperature = settings["criticalTemperature"]
-		self.maskDetectionAccuracy = settings["maskDetectionAccuracy"]
-
-		self.useTemperature = settings["useTemperature"]
+			self.settings = json.load(file)
 		
 
 		
 global person
 person = Person()
+
+if person.settings["loadCircuit"]:
+
+	circuit = person.settings["loadCircuitPath"] or person.settings["defaultCircuitPath"]
+	api_connection.createCircuit(circuit=circuit)
+	
 
 maskLed = GroveLed(1)
 temperatureLed = GroveLed(2)
@@ -91,7 +92,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 
 		# filter out weak detections by ensuring the confidence is
 		# greater than the minimum confidence
-		if confidence > person.maskDetectionAccuracy:
+		if confidence > person.settings["maskDetectionAccuracy"]:
 			# compute the (x, y)-coordinates of the bounding box for
 			# the object
 			box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
@@ -174,17 +175,15 @@ def frame():
 # Main Loop
 while True:
 
-	
-
 	frame()
 	person.temperature = CounterFitConnection.get_sensor_float_value(0)
 
 	# CONDITIONS
 
 	maskLed.off() if person.mask else maskLed.on() 
-	temperatureLed.on() if person.temperature >= person.criticalTemperature else temperatureLed.off()
+	temperatureLed.on() if person.temperature >= person.settings["criticalTemperature"] else temperatureLed.off()
 
-	if person.mask and ( not person.useTemperature or (person.temperature < person.criticalTemperature)):
+	if person.mask and ( not person.settings["useTemperature"] or (person.temperature < person.settings["criticalTemperature"])):
 		# the subject is allowed to enter
 		relay.on() # activate relay
 		authorizedLed.on() # turn on green light

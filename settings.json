@@ -1,5 +1,9 @@
 {
     "criticalTemperature": 38,
     "maskDetectionAccuracy": 0.7,
-    "useTemperature": true
+    "useTemperature": true,
+
+    "loadCircuit": true,
+    "loadCircuitPath": "",
+    "defaultCircuitPath": "default_circuit.json"
 }

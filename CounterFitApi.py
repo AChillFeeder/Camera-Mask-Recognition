@@ -10,6 +10,9 @@ class CounterFitApi:
         self.address = f"http://{self.host}:{self.port}"
         self.headers = {'Content-type': 'application/json', 'Accept': 'text/plain'} # In case I need it
 
+        with open("settings.json") as file:
+            self.settings = json.load(file)
+
         self.available_sensors = {
             "Temperature": {"default_unit": "Celsius", "value_type": "float"}, 
             "Button": {"default_unit": "", "value_type": "boolean"},
@@ -84,6 +87,8 @@ class CounterFitApi:
         )
 
     def createCircuit(self, circuit="default_circuit.json"):
+        
+        
         with open(circuit, "r") as file:
             circuit = json.load(file)
 
@@ -128,9 +133,6 @@ class CounterFitApi:
                     self.editActuator(actuator_pin)
 
 
-# make is so capitalization isn't needed
+
 # add unit support
 # raise errors instead of return 0
-
-
-# SWAP PIN AND TYPE IN JSON FILE AND FIX THE SHIT ACCORDINGLY
