@@ -1,22 +1,22 @@
 {
     "sensors": {
-        "Temperature": {
-            "pin": 0,
+        "0": {
+            "type": "Temperature",
             "value": 37,
             "is_random": true,
             "random_min": 37,
             "random_max": 39
         },
-        "Button": {
-            "pin": 10,
-            "value": true,
-            "is_random": true
+        "10": {
+            "type": "Button",
+            "value": false,
+            "is_random": false
         }
     },
     "actuators": {
-        "LED": {"pin": 1, "color": "#FF0000"},
-        "LED": {"pin": 2, "color": "#FFFF00"},
-        "LED": {"pin": 3, "color": "#00FF00"},
-        "Relay": {"pin": 4}
+        "1": {"type": "LED", "color": "#FF0000"},
+        "2": {"type": "LED", "color": "#FFFF00"},
+        "3": {"type": "LED", "color": "#00FF00"},
+        "4": {"type": "Relay"}
     }
 }

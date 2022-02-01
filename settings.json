@@ -1,5 +1,5 @@
 {
     "criticalTemperature": 38,
-    "maskDetectionAccuracy": 0.5,
+    "maskDetectionAccuracy": 0.7,
     "useTemperature": true
 }

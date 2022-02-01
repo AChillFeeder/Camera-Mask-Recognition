@@ -89,17 +89,17 @@ class CounterFitApi:
         with open(circuit, "r") as file:
             circuit = json.load(file)
 
-        for sensor_type, sensor in circuit["sensors"].items():
-            if sensor_type in self.available_sensors:
+        for sensor_pin, sensor in circuit["sensors"].items():
+            if sensor["type"] in self.available_sensors:
                 # CREATION
-                self.createSensor(sensor_type, sensor["pin"])
+                self.createSensor(sensor["type"], sensor_pin)
 
                 # ADDING SETTINGS
                 # provide the values for random_min and random_max if they exist
                 if "random_min" in sensor and "random_max" in sensor:
                     self.editSensor(
-                        sensor_type, 
-                        sensor["pin"], 
+                        sensor["type"], 
+                        sensor_pin, 
                         sensor["value"], 
                         is_random=sensor["is_random"],
                         random_min= sensor["random_min"],
@@ -109,25 +109,25 @@ class CounterFitApi:
                 # pass the function without those arguments otherwise (case of a Button for example)
                 else:
                     self.editSensor(
-                        sensor_type, 
-                        sensor["pin"], 
+                        sensor["type"], 
+                        sensor_pin, 
                         sensor["value"], 
                         is_random=sensor["is_random"],
                         )
 
             else:
-                print(f"{sensor_type} doesn't exist, choose a sensor from the following list \n{self.available_sensors}")
+                print(f"{sensor['type']} doesn't exist, choose a sensor from the following list \n{self.available_sensors}")
 
-        for actuator_type, actuator in circuit["actuators"].items():
-            if actuator_type in self.available_actuators:
+        for actuator_pin, actuator in circuit["actuators"].items():
+            if actuator["type"] in self.available_actuators:
                 # CREATION
-                self.createActuator(actuator_type, actuator["pin"])
+                self.createActuator(actuator["type"], actuator_pin)
 
                 # EDITING SETTINGS
                 if "color" in actuator:
-                    self.editActuator(actuator["pin"], color=actuator["color"])
+                    self.editActuator(actuator_pin, color=actuator["color"])
                 else:
-                    self.editActuator(actuator["pin"])
+                    self.editActuator(actuator_pin)
 
 
 # make is so capitalization isn't needed
