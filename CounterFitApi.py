@@ -3,6 +3,7 @@ import requests
 import json
 
 class CounterFitApi:
+    
     def __init__(self, host, port) -> None:
 
         self.host = host
@@ -22,13 +23,13 @@ class CounterFitApi:
             "Relay", "LED"
         }
 
+
     def createSensor(self, type, pin, unit=None):
         
         if type in self.available_sensors:
             unit = unit or self.available_sensors[type]["default_unit"] # use default unit if none is provided
         else:
-            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
-            return 0
+            raise(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
 
         requests.post(
             f"{self.address}/create_sensor", json={
@@ -38,11 +39,12 @@ class CounterFitApi:
             }
         )
 
+
     def createActuator(self, type, pin):
         
         if not type in self.available_actuators:
-            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
-            return 0
+            raise(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
+            
 
         requests.post(
             f"{self.address}/create_actuator", json={
@@ -50,6 +52,7 @@ class CounterFitApi:
                 "port": pin
             }
         )
+
 
     def editSensor(self, type, pin, value, **randomization_settings):
 
@@ -60,8 +63,8 @@ class CounterFitApi:
 
         
         if not type in self.available_sensors:
-            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
-            return 0
+            raise(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_sensors))
+            
 
         requests.post(
             f"{self.address}/{self.available_sensors[type]['value_type']}_sensor_settings", json={
@@ -72,12 +75,13 @@ class CounterFitApi:
                 "random_max": random_max
             }
         )
-        
+
+
     def editActuator(self, pin, type="LED", color=""):
 
         if not type in self.available_actuators:
-            print(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
-            return 0
+            raise(f"TYPE {type} isn't supported, use one from the following list\n" + str(self.available_actuators))
+            
 
         requests.post(
             f"{self.address}/led_actuator_settings", json={
@@ -86,8 +90,8 @@ class CounterFitApi:
             }
         )
 
+
     def createCircuit(self, circuit="default_circuit.json"):
-        
         
         with open(circuit, "r") as file:
             circuit = json.load(file)
@@ -119,7 +123,7 @@ class CounterFitApi:
                         )
 
             else:
-                print(f"{sensor['type']} doesn't exist, choose a sensor from the following list \n{self.available_sensors}")
+                raise(f"{sensor['type']} doesn't exist, choose a sensor from the following list \n{self.available_sensors}")
 
         for actuator_pin, actuator in circuit["actuators"].items():
             if actuator["type"] in self.available_actuators:
@@ -132,7 +136,8 @@ class CounterFitApi:
                 else:
                     self.editActuator(actuator_pin)
 
+            else:
+                raise(f"{actuator['type']} doesn't exist, choose a sensor from the following list \n{self.available_actuators}")
+                
 
 
-# add unit support
-# raise errors instead of return 0

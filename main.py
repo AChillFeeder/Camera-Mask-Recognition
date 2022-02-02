@@ -215,5 +215,3 @@ Pins map:
 4 - relay
 10 - Reset button 
 """
-
-# add settings (accuracy, temperature, use temperature or not)
